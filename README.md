@@ -1,5 +1,5 @@
 # COINr
-Composite indicator construction and analysis
+An R package for composite indicator construction and analysis
 
 A package under construction for building and analysing composite indicators.
 
