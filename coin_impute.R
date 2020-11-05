@@ -6,6 +6,7 @@
 #' @param ntype The type of normalisation method. Either "minmax", "zscore", or "custom".
 #' @param npara Supporting object for ntype.
 #' @param inames Character vector of indiator names, indicating which columns to normalise. Use this if you only want to normalise certain columns, or you are inputting a data frame with some columns which are not to be normalised (e.g. country names, groups, ...)
+#' @param groupvar The name of the column to use for by-group imputation. Only applies when imtype is set to a group option.
 #'
 #' @examples df_norm <- coin_normalise(df, ntype="minmax", npara = c(0,1))
 #'
