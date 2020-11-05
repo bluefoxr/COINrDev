@@ -1,0 +1,9 @@
+Code,Name,Unit,Direction,Data year,Denominator,Agg_1,Agg_2,Agg_3,Ind_weight,Target
+LPI,Logistics Performance Index,None (1-5 score),1,2016,NA,P1,SI1,Index,1,4.225967
+Fly,International flights passenger capacity,Million seats,1,2017,Den_Population,P1,SI1,Index,1,210.8244
+Ship,Liner Shipping Connectivity Index,None (score),1,2016,NA,P1,SI1,Index,1,20.8004246
+Bord,Border crossings,Number of crossings,1,2018,Den_Area,P2,SI2,Index,1,105
+Elec,Trade in electricity,TWh,1,2015-2017 average,Den_Energy,P2,SI2,Index,1,110.1795628
+Dogs,Trade in gas,Million tonnes,1,2015-2017 average,Den_Energy,P2,SI2,Index,1,94.8
+Bones,Average connection speed,Mbps,1,2017,NA,P3,SI2,Index,1,23.5
+4G,Population covered by at least a 4G mobile network,Percentage,1,2015,NA,P3,SI2,Index,1,100

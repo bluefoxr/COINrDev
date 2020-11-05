@@ -1,0 +1,4 @@
+Agg_1_code,Agg_1_name,Agg_1_weight,Agg_1_meth,Agg_2_code,Agg_2_name,Agg_2_weight,Agg_2_meth,Agg_3_code,Agg_3_name,Agg_3_weight,Agg_3_method
+P1,People to people,1,Arithmetic,SI1,Sustainability,1,Arithmetic,Index,Sustainable Connectivity Index,1,Arithmetic
+P2,Physical,2,Arithmetic,SI2,Connectivity,1,Arithmetic,NA,NA,NA,NA
+P3,Economic,1,Arithmetic,NA,NA,NA,NA,NA,NA,NA,NA
