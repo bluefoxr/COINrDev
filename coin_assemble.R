@@ -35,6 +35,8 @@ coin_assemble <- function(data_raw, metad, framewk){
     message("-----------------")
     COINlist$parameters$n_ind <- length(cnames1) # save to list
     COINlist$parameters$ind_names <- cnames1 # save to list
+    COINlist$parameters$unit_names <- select(data_raw, starts_with("Code_")) %>% 
+      unlist(use.names = F)
     COINlist$parameters$n_unit <- n_distinct(data_raw$Code_country, na.rm = TRUE)
     message(paste("Number of indicators =",length(cnames1)))
     message(paste("Number of units =",COINlist$parameters$n_unit))
@@ -52,7 +54,9 @@ coin_assemble <- function(data_raw, metad, framewk){
   agg_cols <- metad %>% select(starts_with("Agg_"))
   n_agg_levels <- length(agg_cols)
   
+  # data frame with aggregation group names in, for each level
   agg_cols_fwk <- select(framewk,ends_with("_code"))
+  COINlist$parameters$agg_names <- agg_cols_fwk
   
   if (n_agg_levels > 0){
     
@@ -89,6 +93,21 @@ coin_assemble <- function(data_raw, metad, framewk){
   COINlist$parameters$n_agg_levels <- n_agg_levels # save to list
   
   message("-----------------")
+  
+  #------- Also get weights and put somewhere sensible
+  
+  # first, indicator weights
+  agweights <- list(Ind_weight = metad$Ind_weight)
+  # now the other weights
+  otherweights <- framewk %>% select(ends_with("_weight"))
+  # join together in one list
+  agweights <- c(agweights, as.list(otherweights))
+  # we just need to remove NAs
+  agweights <- lapply(agweights, function(x) x[!is.na(x)])
+  # squirrel away in object
+  COINlist$parameters$agweights <- agweights
+  
+  #------- Last bits
   
   class(COINlist) <- "COIN object" # assigns a "COIN object" class to the list. Helpful for later on.
   

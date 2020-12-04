@@ -28,11 +28,13 @@ coin_preanalyse <- function(COINobj, thresh = c(2, 3.5, 0.9, 0.8, 65, 1.5), inam
     if (dset=="raw"){
       ind_data <- COINobj$data$data_raw # get raw indicator data
     } else  if (dset=="denominated"){
-      ind_data <- COINobj$data$data_denominated # get raw indicator data
+      ind_data <- COINobj$data$data_denominated # denominated
     } else  if (dset=="imputed"){
-      ind_data <- COINobj$data$data_imputed # get raw indicator data
+      ind_data <- COINobj$data$data_imputed # imputed
     } else  if (dset=="normalised"){
-      ind_data <- COINobj$data$data_normalised # get raw indicator data
+      ind_data <- COINobj$data$data_normalised # normalised
+    } else  if (dset=="treated"){
+      ind_data <- COINobj$data$data_treated # treated
     }
     
     if (is.null(inames)){
@@ -108,6 +110,45 @@ coin_preanalyse <- function(COINobj, thresh = c(2, 3.5, 0.9, 0.8, 65, 1.5), inam
   
   COINobj$Analysis$outlier_flag <- out_flag
   
+  #--- Detailed missing data analysis by aggregation group
+  
+  # the easiest way to do this is to loop over sub-pillars. Get first the index structure
+  # (selects indicator codes plus all aggregation level columns/codes)
+  agg_levels <- select(COINobj$metadata, "Code" | starts_with("Agg_"))
+  
+  data_avail_bygroup <- data.frame("Code" = COINobj$parameters$unit_names)
+  
+  for (ilev in 1:(ncol(agg_levels)-1)){ # loop over aggregation levels, except the last one
+    
+    agg1 <- pull(agg_levels,1) # names of indicators
+    agg2 <- pull(agg_levels,ilev+1) # names of aggregation groups in the level above
+    agg2_names <- unique(agg2) # only the names of agg level above (no repetitions)
+    
+    # pre-allocate a data frame for prc data availability
+    d_avail_lev <- as.data.frame(matrix(NA, nrow = nrow(ind_data_only), ncol = length(agg2_names)))
+    
+    for (igroup in 1:length(agg2_names)){ # now looping over groups inside this level
+      
+      gname <- agg2_names[igroup] # select group name
+      
+      # get indicator codes belonging to group
+      gcodes <- agg1[agg2 == gname]
+      # get corresponding indicator columns
+      ginds <- ind_data_only %>% select(all_of(gcodes))
+      # now count prc data available and add to data frame
+      d_avail_lev[,igroup] <- 100*rowSums(!is.na(ginds))/ncol(ginds)
+      
+    }
+    
+    # add column names (aggregation group names) to data availability table
+    colnames(d_avail_lev) <- agg2_names
+    # add to big table
+    data_avail_bygroup <- cbind(data_avail_bygroup, d_avail_lev)
+    
+  }
+  
+  COINobj$Analysis$data_avail_detailed <- data_avail_bygroup
+  
   ##------- Now checking correlations ---------
   
   # isolate relevant data
@@ -139,17 +180,6 @@ coin_preanalyse <- function(COINobj, thresh = c(2, 3.5, 0.9, 0.8, 65, 1.5), inam
   ind_stats <- ind_stats %>% add_column(Denom.correlation = maxcor) # add to table
   message(paste("Number of indicators with high denominator correlations = ",sum(maxcor=="High")))
   
-  # plot indicator correlations (perhaps move this to another function...)
-  corrplot(corr_ind, p.mat = p_ind$p, sig.level = .01, insig = "blank")
-  agspec <- select(COINobj$metadata,starts_with(("Agg_"))) # the columns showing aggregation groups. Need for grouping the plot.
-  
-  # Now overlay aggregation groups
-  colourz <- c("black","blue","green","red")
-  for (ii in 1:(COINobj$parameters$n_agg_levels-1)){
-    groupz <- as.data.frame(table(agspec[,ii])) # this gets a summary of the number of repetitions of each value, so the number of indicators in each agg. group
-    corrRect(groupz[,2], col = colourz[ii], lwd = ii) # plot rectangle, changing colour and thickness
-  }
-  
   ##---- PCA ---------------##
   
   # pca <- prcomp(ind_data_only, center = T, scale. = T)
@@ -161,7 +191,8 @@ coin_preanalyse <- function(COINobj, thresh = c(2, 3.5, 0.9, 0.8, 65, 1.5), inam
   if (is.data.frame(COINobj)){
     return(ind_stats) # if a data.frame was input, return data frame. Otherwise append to COIN object.
   } else {
-    COINobj$Analysis$Ind_stats <- ind_stats
+    # add, but referring to correct data set so no confusion what it is
+    eval(parse(text=paste0("COINobj$Analysis$Ind_stats_",dset,"<- ind_stats")))
     return(COINobj)
   }
   

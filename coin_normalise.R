@@ -6,6 +6,8 @@
 #' @param ntype The type of normalisation method. Either "minmax", "zscore", or "custom".
 #' @param npara Supporting object for ntype.
 #' @param inames Character vector of indiator names, indicating which columns to normalise. Use this if you only want to normalise certain columns, or you are inputting a data frame with some columns which are not to be normalised (e.g. country names, groups, ...)
+#' @param directions A vector specifying the direction assigned to each indicator.
+#' Needs to be the same length as the number of indicators, or the number of indicators in inames, if specified.
 #'
 #' @examples df_norm <- coin_normalise(df, ntype="minmax", npara = c(0,1))
 #'
@@ -13,7 +15,8 @@
 #'
 #' @export
 
-coin_normalise <- function(COINobj, ntype="minmax", npara = NULL, inames = NULL, dset = "raw"){
+coin_normalise <- function(COINobj, ntype="minmax", npara = NULL, inames = NULL,
+                           dset = "raw", directions = NULL){
 
   # First. check to see what kind of input we have.
   if ("COIN object" %in% class(COINobj)){ # COIN obj
@@ -25,7 +28,7 @@ coin_normalise <- function(COINobj, ntype="minmax", npara = NULL, inames = NULL,
       ind_data = tryCatch({
         COINobj$data$data_imputed
       }, error = function(e) {
-        stop("No normalised data set exists. Create one first using coin_normalise.")
+        stop("No imputed data set exists. Create one first using coin_normalise.")
       })
     }
     
@@ -33,6 +36,15 @@ coin_normalise <- function(COINobj, ntype="minmax", npara = NULL, inames = NULL,
       ind_names <- COINobj$parameters$ind_names # get indicator names
     } else {
       ind_names <- inames 
+    }
+    
+    if (is.null(directions)){ # if no directions are explicitly specified
+      
+      if (exists("Direction",COINobj$metadata)){ # check if available in COIN obj
+        directions <- COINobj$metadata$Direction
+      } else { # if not, just set everything positive
+        directions <- rep(1,length(ind_names))
+      } # otherwise, directions will be taken from the function input.
     }
     
   } else if (is.data.frame(COINobj)){ # Data frame
@@ -50,6 +62,10 @@ coin_normalise <- function(COINobj, ntype="minmax", npara = NULL, inames = NULL,
   }
   
   databit<-select(ind_data,all_of(ind_names)) # select relevant columns to normalise
+  
+  # nifty map2 implementation here. Multiply each column of databit by corresponding column of directions
+  # This def works with minmax, check if works with other methods.
+  databit <- map2(databit, directions, ~ .x*.y)
 
   if (ntype == "minmax"){
 
