@@ -1,6 +1,8 @@
-# COINr
-An R package for composite indicator construction and analysis
+# COINrDev
 
-A package under construction for building and analysing composite indicators.
+This is a development repository for COINr. I am using this for
+backing up files that are also not yet included in COINr.
 
-Features analysis, aggregation of normalisation, weighting, missing data imputation, plots and many other things.
+In short, COINr should work as a package, whereas
+COINrDev has incomplete files and is much more likely to contain bugs!
+It is also not composed as a package, just a bunch of functions.
